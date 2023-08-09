@@ -5,11 +5,19 @@ import {
 } from '@tanstack/react-query'
 import { useState } from 'react';
 import Hero from './components/Hero';
-import ResultInfo from './components/ResultInfo';
+import ResultInfo, { RequestType } from './components/ResultInfo';
 import APIResponse from './components/APIResponse';
 import LoadingSpinner from './components/LoadingSpinner';
 import RequestError from './components/ErrorResponse';
 import { YextAPIResponse } from './types';
+import { fetchAIResponse } from './fetchData';
+import EntityList from './components/EntityList';
+
+interface AIResponse {
+  url: string;
+  method: RequestType;
+  body?: Record<string, any>;
+}
 
 const queryClient = new QueryClient();
 
@@ -22,39 +30,80 @@ function App() {
 }
 
 function AppInternal() {
-  const [requestURL, setRequestURL] = useState("https://liveapi.yext.com/v2/accounts/me/entities/geosearch?api_key=a76f3747d89260bdebb2c3223cffe03e&entityTypes=location&limit=4&radius=50&savedFilterIds=1246936843&v=20220927&location=40.7416944%2C-74.0056597&filter=%7B%22meta.id%22%3A%7B%22%21%24eq%22%3A%22test-location%22%7D%7D");
+  const [apiKey, setApiKey] = useState("c57aa11769201ea2e65d85b21758445e");
+  const [prompt, setPrompt] = useState("");
+  const [AILoading, setAILoading] = useState(false);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const [prediction, setPrediction] = useState<AIResponse>();
+  const [requestURL, setRequestURL] = useState("");
+
+  const [resp, setResp] = useState<any>();
+  const [error, setError] = useState<any>();
+
+  const { data: allEntities, isFetching } = useQuery({
     queryKey: ["api_request", requestURL],
-    queryFn: async () => fetchURL(requestURL),
-    enabled: !!requestURL,
+    queryFn: async () => fetchAll(),
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  console.log(allEntities);
+
+  const handleSubmit = async () => {
+    setAILoading(true);
+    const aiResponse = await fetchAIResponse(`${prompt}. APIKEY=${apiKey}`);
+    const parsedResponse: AIResponse = JSON.parse(aiResponse.predictions[0].content);
+
+    try {
+      const data = await fetchWithProxy(parsedResponse);
+      setResp(data);
+      setRequestURL(parsedResponse.url);
+      setPrediction(parsedResponse);
+      setAILoading(false);
+      setError(null);
+    } catch (error) {
+      console.error("AI returned invalid URL");
+      setAILoading(false);
+      setError(error);
+    }
+
+    setAILoading(false);
+  }
 
   return (
     <div className='container'>
       <Hero />
       <div className='relative'>
+        <div className='flex flex-col w-[500px]'>
+          <input
+            className='border border-black mb-2 px-4 py-2 rounded-sm'
+            value={apiKey}
+            onChange={e => setApiKey(e.target.value)}
+            placeholder='Add api key'
+          />
+          <div className='flex flex-col'>
+            <input
+              className='border border-black mb-2 px-4 py-2 rounded-sm'
+              value={prompt}
+              onChange={e => setPrompt(e.target.value)}
+              placeholder='Prompt'
+            />
+            <button onClick={handleSubmit} disabled={!apiKey || !prompt}
+              className="disabled:bg-red-100 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-sm"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
         <ResultInfo
-          group='Content Delivery'
-          groupLink='https://hitchhikers.yext.com/docs/contentdeliveryapis/introduction/overview-policies-and-conventions/'
-          endpoint='Entities: List'
-          endpointDescription='Retrieve a list of Entities within an account'
-          requestType='POST'
+          requestType={prediction?.method}
           requestURL={requestURL}
-          requestionBody={{
-            fields: [
-              123,
-              456
-            ],
-            limit: 10,
-            name: "test name"
-          }}
+          requestBody={prediction?.body}
         />
-        {isError && <RequestError error={error} />}
-        {data && <APIResponse data={data} />}
-        {isLoading && <LoadingSpinner />}
+        {error && <RequestError error={error} />}
+        {resp && <APIResponse data={resp} />}
+        <EntityList entities={allEntities?.response?.entities} />
+        {(isFetching || AILoading) && <LoadingSpinner />}
       </div>
     </div>
   );
@@ -62,9 +111,30 @@ function AppInternal() {
 
 export default App
 
-async function fetchURL(url: string) {
+interface ProxyRequestData {
+  url: string;
+  method: string;
+  body?: Record<string, any>;
+}
+
+async function fetchWithProxy(body: ProxyRequestData) {
+  const response = await fetch("https://main-blindly--square--shrimp-pgsdemo-com.preview.pagescdn.com/proxy", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  const data = await response.json();
+  return data;
+}
+
+async function fetchAll() {
   try {
-    const response = await fetch(url);
+    const response = await fetch("https://main-blindly--square--shrimp-pgsdemo-com.preview.pagescdn.com/proxy", {
+      method: "POST",
+      body: JSON.stringify({
+        url: "https://api.yextapis.com/v2/accounts/me/entities?v=20230808&api_key=c57aa11769201ea2e65d85b21758445e",
+        method: "GET",
+      })
+    });
     const data = await response.json();
     return data as YextAPIResponse;
   } catch (error: any) {

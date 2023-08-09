@@ -22,10 +22,10 @@ function Hero() {
     <div className="py-4 sm:py-5">
       <div className="flex items-center mb-8">
         <img src={yextLogo} className="h-12 w-12 mr-4" alt="yext logo" />
-        <h1 className="font-heading font-light text-5xl">API Assistant</h1>
+        <h1 className="font-heading font-light text-5xl">Content Assistant</h1>
       </div>
       <div>
-        <div className="mb-1">Use the AI assistant to help you make requests to the Yext APIs:</div>
+        <div className="mb-1">Use the content assistant to help you make requests to the Yext APIs:</div>
         <ul className="list-inside list-disc mb-1">
           {apis.map(api => (
             <li key={api.name} className="ml-4">
