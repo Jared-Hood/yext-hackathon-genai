@@ -11,8 +11,8 @@ function EntityList(props: EntityListProps) {
 
   return (
     <div className="py-4 sm:py-5">
-      <h2 className="font-heading text-2xl font-light mb-4">All Entities</h2>
-      <ul className="flex flex-wrap -m-4">
+      <h2 className="font-heading text-2xl font-light mb-4">All Entities in Account</h2>
+      <ul className="flex flex-wrap -m-2">
         {props.entities.map((entity: any) => (
           <li key={entity.meta.id} className="basis-full sm:basis-1/3 md:basis-1/4 p-2 h-full">
             <div className="border border-black rounded-md p-4">

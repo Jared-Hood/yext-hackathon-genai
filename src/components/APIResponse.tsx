@@ -24,7 +24,23 @@ function APIResponse(props: APIResponseProps) {
         ))}      
       </div>
      )}
-      <JSONViewer  data={props.data} />
+      <JSONViewer data={props.data} />
+      {props.data.response.entities?.length && <ul className="flex flex-wrap -m-2 mt-4">
+        {props.data.response.entities.map((entity: any) => (
+          <li key={entity.meta.id} className="basis-full sm:basis-1/3 md:basis-1/4 p-2 h-full">
+            <div className="border border-black rounded-md p-4">
+              <h3 className="mb-1 font-medium text-lg">{entity.name}</h3>
+              <div>Entity ID: {entity.meta.id}</div>
+            </div>
+          </li>
+        ))}
+      </ul>}
+      {props.data.response?.name && props.data.response.meta.id  && (
+        <div className="border border-black rounded-md p-4 w-full sm:w-1/3 md:w-1/4 mt-4">
+          <h3 className="mb-1 font-medium text-lg">{props.data.response?.name}</h3>
+          <div>Entity ID: {props.data.response.meta.id}</div>
+        </div>
+      )}
     </div>
   );
 }

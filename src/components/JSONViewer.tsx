@@ -10,7 +10,7 @@ function JSONViewer(props: JSONViewerType) {
   }
 
   return (
-    <JSONTree data={props.data}  />
+    <JSONTree data={props.data} hideRoot={true} shouldExpandNodeInitially={(_, __, level) => level < 3} />
   );
 }
 

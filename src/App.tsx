@@ -41,13 +41,11 @@ function AppInternal() {
   const [error, setError] = useState<any>();
 
   const { data: allEntities, isFetching } = useQuery({
-    queryKey: ["api_request", requestURL],
+    queryKey: ["api_request", resp],
     queryFn: async () => fetchAll(),
     retry: false,
     refetchOnWindowFocus: false,
   });
-
-  console.log(allEntities);
 
   const handleSubmit = async () => {
     setAILoading(true);
@@ -89,7 +87,7 @@ function AppInternal() {
               placeholder='Prompt'
             />
             <button onClick={handleSubmit} disabled={!apiKey || !prompt}
-              className="disabled:bg-red-100 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-sm"
+              className="disabled:bg-gray-200 bg-green-200 hover:bg-green-300 px-4 py-2 rounded-sm w-[fit-content]"
             >
               Submit
             </button>
