@@ -10,7 +10,6 @@ import APIResponse from './components/APIResponse';
 import LoadingSpinner from './components/LoadingSpinner';
 import RequestError from './components/ErrorResponse';
 import { YextAPIResponse } from './types';
-import { fetchAIResponse } from './fetchData';
 import EntityList from './components/EntityList';
 import { fetchAIChatResponse } from './fetchDataChat';
 import ChatMessages from './components/ChatMessages';
@@ -52,6 +51,7 @@ function AppInternal() {
   const [prediction, setPrediction] = useState<AIResponse>();
   const [requestURL, setRequestURL] = useState("");
 
+  const [foundEntityIds, setFoundEntityIds] = useState<string[]>([]);
   const [resp, setResp] = useState<any>();
   const [error, setError] = useState<any>();
 
@@ -67,9 +67,12 @@ function AppInternal() {
 
   const handleSubmit = async () => {
     setAILoading(true);
+
+    const previousEntityId = foundEntityIds.length === 1 ? foundEntityIds[0] : null;
+  
     const userMessage: UserChatMessage = {
       author: "user",
-      content: prompt,
+      content: `${prompt}${previousEntityId ? `.PREV_ID=${previousEntityId}` : ''}`,
     };
 
     const updatedMessages: ChatMessage[] = [...messagesToSend, userMessage];
@@ -77,7 +80,6 @@ function AppInternal() {
     setMessagesToSend(m => [...m, userMessage]);
 
     const chatResponse = await fetchAIChatResponse(apiKey, updatedMessages);
-    console.log(chatResponse);
     const parsedChatResponse: AIResponse = JSON.parse(chatResponse.predictions[0].candidates[0].content);
     console.log(parsedChatResponse);
 
@@ -95,6 +97,9 @@ function AppInternal() {
     if (parsedChatResponse.url && parsedChatResponse.method) {
       try {
         const data = await fetchWithProxy(parsedChatResponse.url, parsedChatResponse.method, parsedChatResponse.body);
+        if (data.response.entities?.length) {
+          setFoundEntityIds(data.response.entities.map((d: any) => d.meta.id))
+        }
         setResp(data);
         setRequestURL(parsedChatResponse.url);
         setPrediction(parsedChatResponse);

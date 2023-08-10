@@ -14,7 +14,7 @@ export default function ChatMessages(props: ChatMessagesProps) {
       {props.messages.map((m, idx) => {
         if (m.author === "user") {
           return (
-            <div key={idx} className='bg-blue-100'>{m.content}</div>
+            <div key={idx} className='bg-blue-100'>{m.content.split('.PREV_ID')[0]}</div>
           )
         }
         return <div key={idx} className='bg-green-100'>{m.content.message}</div>

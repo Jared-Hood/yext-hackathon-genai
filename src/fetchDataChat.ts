@@ -66,21 +66,7 @@ function getBody (apiKey: string, messages: ChatMessage[]) {
             {
               input: {
                 author: "user",
-                content: "Find 123"
-              },
-              output: {
-                author: "bot",
-                content: JSON.stringify({
-                  message: "Here's the entity with id '123'",
-                  url: `https://api.yextapis.com/v2/accounts/me/entities/123?v=20230808&api_key=${apiKey}`,
-                  method: "GET",
-                })
-              }
-            },
-            {
-              input: {
-                author: "user",
-                content: "Update that entities name to be Yext Miami!"
+                content: "Update that entities name to be Yext Miami! PREV_ID=yext-miami"
               },
               output: {
                 author: "bot",
@@ -102,7 +88,7 @@ function getBody (apiKey: string, messages: ChatMessage[]) {
               output: {
                 author: "bot",
                 content: JSON.stringify({
-                  message: "Here's the entities where the name is 'Yext Austin'",
+                  message: "Here are the entities where the name is 'Yext Austin'",
                   url: `https://api.yextapis.com/v2/accounts/me/entities?v=20230808&api_key=${apiKey}&filter={'name':{'$eq':'Yext Austin'}}`,
                   method: "GET",
                 })
@@ -111,7 +97,7 @@ function getBody (apiKey: string, messages: ChatMessage[]) {
             {
               input: {
                 author: "user",
-                content: "How about where the name is not Yext Austin"
+                content: "How about where the name is not Yext Austin."
               },
               output: {
                 author: "bot",
