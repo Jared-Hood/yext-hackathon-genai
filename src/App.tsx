@@ -129,6 +129,7 @@ function AppInternal() {
 
   return (
     <div className='container relative h-full'>
+      <h1 className='text-red-700'>Note: This requires initializing to google cloud in the terminal and generating a new api key every hour. This won't work otherwise.</h1>
       <Hero />
       <div className='flex flex-col border border-gray-500 bg-white px-8 py-4 rounded-md fixed z-[100] bottom-4 right-4 h-[683px] w-1/3'>
         <ChatMessages messages={messages} initialMessage='How can I help you today?' />
