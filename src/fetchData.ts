@@ -1,5 +1,5 @@
 const url = "https://us-central1-aiplatform.googleapis.com/v1/projects/parksnrec-hackathon/locations/us-central1/publishers/google/models/text-bison@001:predict";
-const apiKey = "ya29.a0AfB_byD3bOtjOAGbSyIDqBQDmvc3XN6MzbcoqWIDbGEzw_0XbMGkCFSSrQ6BTm8ohntmHE-kRLyCoJknnLe9OJvCREKowuJc6tonkIGkM0qnWdd4SbuORVszuSXwIlwXU9eKaIImznIkWDoB3off7UlLfUPoupJz1UqihQaCgYKAT0SARASFQHsvYlsMV5yBWmST5_t7UwuOdDciA0173"
+const apiKey = "ya29.a0AfB_byBQZu3EtIAHXhtFKd-6T6iQzyq2-tU_aqea7gHfVfvTACerq8aglGJwx0kyGI2FJyVY1mtvK_MyLmDp8sgR8gXbcw5uRJd3y_zIeP32Ys7jeAxAJjN4bdHonxd37l8kulCitkNvyr8z-A4hm9pbUq4ZHla8vR1BaCgYKAUMSARASFQHsvYlsxq2dRmHYtxzhL0MNqwkRzA0171"
 
 export async function fetchAIResponse(prompt: string) {
   const resp = await fetch(new Request(url, {

@@ -12,11 +12,14 @@ import RequestError from './components/ErrorResponse';
 import { YextAPIResponse } from './types';
 import { fetchAIResponse } from './fetchData';
 import EntityList from './components/EntityList';
+import { fetchAIChatResponse } from './fetchDataChat';
+import ChatMessages from './components/ChatMessages';
 
 interface AIResponse {
-  url: string;
-  method: RequestType;
+  url?: string;
+  method?: RequestType;
   body?: Record<string, any>;
+  message: string;
 }
 
 const queryClient = new QueryClient();
@@ -29,6 +32,18 @@ function App() {
   )
 }
 
+interface UserChatMessage {
+  author: "user";
+  content: string;
+}
+
+interface BotChatMessage {
+  author: "bot";
+  content: AIResponse;
+}
+
+export type ChatMessage  = UserChatMessage | BotChatMessage;
+
 function AppInternal() {
   const [apiKey, setApiKey] = useState("c57aa11769201ea2e65d85b21758445e");
   const [prompt, setPrompt] = useState("");
@@ -40,6 +55,9 @@ function AppInternal() {
   const [resp, setResp] = useState<any>();
   const [error, setError] = useState<any>();
 
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messagesToSend, setMessagesToSend] = useState<any[]>([]);
+
   const { data: allEntities, isFetching } = useQuery({
     queryKey: ["api_request", resp],
     queryFn: async () => fetchAll(),
@@ -49,20 +67,44 @@ function AppInternal() {
 
   const handleSubmit = async () => {
     setAILoading(true);
-    const aiResponse = await fetchAIResponse(`${prompt}. APIKEY=${apiKey}`);
-    const parsedResponse: AIResponse = JSON.parse(aiResponse.predictions[0].content);
+    const userMessage: UserChatMessage = {
+      author: "user",
+      content: prompt,
+    };
 
-    try {
-      const data = await fetchWithProxy(parsedResponse);
-      setResp(data);
-      setRequestURL(parsedResponse.url);
-      setPrediction(parsedResponse);
-      setAILoading(false);
-      setError(null);
-    } catch (error) {
-      console.error("AI returned invalid URL");
-      setAILoading(false);
-      setError(error);
+    const updatedMessages: ChatMessage[] = [...messagesToSend, userMessage];
+    setMessages(m => [...m, userMessage]);
+    setMessagesToSend(m => [...m, userMessage]);
+
+    const chatResponse = await fetchAIChatResponse(apiKey, updatedMessages);
+    console.log(chatResponse);
+    const parsedChatResponse: AIResponse = JSON.parse(chatResponse.predictions[0].candidates[0].content);
+    console.log(parsedChatResponse);
+
+    setMessages(m => [...m, {
+      author: "bot",
+      content: parsedChatResponse,
+    }]);
+    setMessagesToSend(m => [...m, {
+      author: "bot",
+      content: JSON.stringify(parsedChatResponse)
+    }]);
+
+    setPrompt("");
+
+    if (parsedChatResponse.url && parsedChatResponse.method) {
+      try {
+        const data = await fetchWithProxy(parsedChatResponse.url, parsedChatResponse.method, parsedChatResponse.body);
+        setResp(data);
+        setRequestURL(parsedChatResponse.url);
+        setPrediction(parsedChatResponse);
+        setAILoading(false);
+        setError(null);
+      } catch (error) {
+        console.error("AI returned invalid URL");
+        setAILoading(false);
+        setError(error);
+      }
     }
 
     setAILoading(false);
@@ -93,6 +135,7 @@ function AppInternal() {
             </button>
           </div>
         </div>
+        <ChatMessages messages={messages} />
         <ResultInfo
           requestType={prediction?.method}
           requestURL={requestURL}
@@ -109,16 +152,14 @@ function AppInternal() {
 
 export default App
 
-interface ProxyRequestData {
-  url: string;
-  method: string;
-  body?: Record<string, any>;
-}
-
-async function fetchWithProxy(body: ProxyRequestData) {
+async function fetchWithProxy(url: string, method: string, body?: Record<string, any>) {
   const response = await fetch("https://main-blindly--square--shrimp-pgsdemo-com.preview.pagescdn.com/proxy", {
     method: "POST",
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      url,
+      method,
+      body,
+    }),
   });
   const data = await response.json();
   return data;
