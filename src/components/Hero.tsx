@@ -19,21 +19,14 @@ const apis = [
 
 function Hero() {
   return (
-    <div className="py-4 sm:py-5">
+    <div className="py-4 sm:py-5 max-w-2/3">
       <div className="flex items-center mb-8">
         <img src={yextLogo} className="h-12 w-12 mr-4" alt="yext logo" />
         <h1 className="font-heading font-light text-5xl">Content Assistant</h1>
       </div>
       <div>
-        <div className="mb-1">Use the content assistant to help you make requests to the Yext APIs:</div>
-        <ul className="list-inside list-disc mb-1">
-          {apis.map(api => (
-            <li key={api.name} className="ml-4">
-              <a className="underline hover:no-underline" href={api.link}>{api.name}</a>
-            </li>
-          ))}
-        </ul>
-        <div>Ask the assistant to use a specific endpoint, apply a filter, or return a certain set of entity fields. Or just describe whatever you are trying to achieve and the AI will help you build the API request to achieve it!</div>
+        <div className="mb-1">Use the content assistant to help you manage your Yext Content</div>
+        <div>Ask the assistant to help get entities, make updates, create new entities, or delete old ones!</div>
       </div>
     </div>
   );

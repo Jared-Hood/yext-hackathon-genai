@@ -3,7 +3,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Hero from './components/Hero';
 import ResultInfo, { RequestType } from './components/ResultInfo';
 import APIResponse from './components/APIResponse';
@@ -67,6 +67,7 @@ function AppInternal() {
 
   const handleSubmit = async () => {
     setAILoading(true);
+    setPrompt("");
 
     const previousEntityId = foundEntityIds.length === 1 ? foundEntityIds[0] : null;
   
@@ -81,7 +82,6 @@ function AppInternal() {
 
     const chatResponse = await fetchAIChatResponse(apiKey, updatedMessages);
     const parsedChatResponse: AIResponse = JSON.parse(chatResponse.predictions[0].candidates[0].content);
-    console.log(parsedChatResponse);
 
     setMessages(m => [...m, {
       author: "bot",
@@ -91,8 +91,6 @@ function AppInternal() {
       author: "bot",
       content: JSON.stringify(parsedChatResponse)
     }]);
-
-    setPrompt("");
 
     if (parsedChatResponse.url && parsedChatResponse.method) {
       try {
@@ -115,32 +113,54 @@ function AppInternal() {
     setAILoading(false);
   }
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Close modal when 'esc' key is pressed.
+  useEffect(() => {
+    const handleHotKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        buttonRef.current?.click();
+      }
+    };
+
+    document.addEventListener("keydown", handleHotKey);
+    return () => document.removeEventListener("keydown", handleHotKey);
+  }, []);
+
   return (
-    <div className='container'>
+    <div className='container relative h-full'>
       <Hero />
-      <div className='relative'>
-        <div className='flex flex-col w-[500px]'>
+      <div className='flex flex-col border border-gray-500 bg-white px-8 py-4 rounded-md fixed z-[100] bottom-4 right-4 h-[683px] w-1/3'>
+        <ChatMessages messages={messages} initialMessage='How can I help you today?' />
+        <div className='mt-auto'>
+          <div className='flex'>
+            <input
+              className='flex-1 border border-gray-700 mb-2 px-4 py-2 rounded-3xl'
+              value={prompt}
+              onChange={e => setPrompt(e.target.value)}
+              placeholder='Type a message...'
+            />
+            <button onClick={handleSubmit} disabled={!apiKey || !prompt} ref={buttonRef}
+              className="hidden disabled:bg-gray-200 bg-green-200 hover:bg-green-300 px-4 py-2 rounded-sm w-[fit-content]"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className='relative w-2/3 pr-16'>
+        <div>
+          <div>
+            API Key
+          </div>
           <input
             className='border border-black mb-2 px-4 py-2 rounded-sm'
             value={apiKey}
             onChange={e => setApiKey(e.target.value)}
             placeholder='Add api key'
           />
-          <div className='flex flex-col'>
-            <input
-              className='border border-black mb-2 px-4 py-2 rounded-sm'
-              value={prompt}
-              onChange={e => setPrompt(e.target.value)}
-              placeholder='Prompt'
-            />
-            <button onClick={handleSubmit} disabled={!apiKey || !prompt}
-              className="disabled:bg-gray-200 bg-green-200 hover:bg-green-300 px-4 py-2 rounded-sm w-[fit-content]"
-            >
-              Submit
-            </button>
-          </div>
         </div>
-        <ChatMessages messages={messages} />
+        {/* <ChatMessages messages={messages} /> */}
         <ResultInfo
           requestType={prediction?.method}
           requestURL={requestURL}
